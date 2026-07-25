@@ -117,13 +117,11 @@ let viewer = null;
 // Compact .ksplat variants (converted from the 148 MB source .ply). Smaller =
 // faster to download (important over tunnels / slow links) and quicker to parse.
 const QUALITY = [
-  { file: 'splat_30000_sh2.ksplat', deg: 2, size: '42MB', meta: '611,290 splats · 2° SH 高清', tip: '高清 (42MB)' },
   { file: 'splat_30000_sh1.ksplat', deg: 1, size: '24MB', meta: '611,290 splats · 1° SH 均衡', tip: '均衡 (24MB)' },
   { file: 'splat_30000_sh0.ksplat', deg: 0, size: '14MB', meta: '611,290 splats · 极速',      tip: '极速 (14MB)' },
 ];
-// Desktop → full quality (SH2). Mobile → balanced (SH1) to protect memory/framerate;
-// the ⭐ button still lets phone users bump up to 高清 if their device can handle it.
-let currentQuality = IS_MOBILE ? 1 : 0;
+// SH2 (42MB) is hosted separately (Cloudflare R2, etc.) — Pages caps single files at 25MB.
+let currentQuality = 0;
 
 function buildViewer(shDegree) {
   const v = new GaussianSplats3D.Viewer({

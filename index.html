@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <title>3D Gaussian Splatting · 环绕展示</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "@mkkellogg/gaussian-splats-3d": "./vendor/gaussian-splats-3d.module.js"
+    }
+  }
+  </script>
+</head>
+<body data-theme="gallery">
+  <!-- Studio backdrop layers -->
+  <div class="backdrop">
+    <div class="backdrop__glow"></div>
+    <div class="backdrop__floor"></div>
+    <div class="backdrop__grain"></div>
+  </div>
+
+  <!-- 3D viewport -->
+  <div id="viewport" aria-label="3D 模型视口"></div>
+
+  <!-- Loading overlay -->
+  <div id="loader" class="loader">
+    <div class="loader__card">
+      <div class="loader__spinner">
+        <svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"></circle></svg>
+      </div>
+      <div class="loader__title">正在装载高斯泼溅模型</div>
+      <div class="loader__sub" id="loaderSub">初始化渲染器…</div>
+      <div class="loader__bar"><span id="loaderFill"></span></div>
+      <div class="loader__pct" id="loaderPct">0%</div>
+    </div>
+  </div>
+
+  <!-- Top brand bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z" /><path d="M12 2v20M3 7l9 5 9-5" /></svg>
+      </div>
+      <div class="brand__text">
+        <div class="brand__name">Gaussian Splat Viewer</div>
+        <div class="brand__meta" id="brandMeta">611,290 splats · 1° SH</div>
+      </div>
+    </div>
+    <button class="ghost-btn" id="infoBtn" title="关于" aria-label="关于">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg>
+    </button>
+  </header>
+
+  <!-- Hint chip -->
+  <div class="hint" id="hint">
+    <span><b>拖拽</b> 环绕</span><i></i><span><b>滚轮</b> 缩放</span><i></i><span><b>右键</b> 平移</span>
+  </div>
+
+  <!-- Control dock -->
+  <div class="dock" id="dock">
+    <button class="dock__btn is-active" id="btnRotate" title="自动旋转 (R)" aria-label="自动旋转">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v4h-4"/></svg>
+    </button>
+    <button class="dock__btn" id="btnFlip" title="翻转上下 (F)" aria-label="翻转朝向">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg>
+    </button>
+    <button class="dock__btn" id="btnReset" title="重置视角 (Space)" aria-label="重置视角">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8M3 3v5h5"/></svg>
+    </button>
+    <div class="dock__sep"></div>
+    <button class="dock__btn" id="btnTheme" title="切换背景 (B)" aria-label="切换背景">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+    </button>
+    <button class="dock__btn" id="btnQuality" title="画质 / 球谐阶数" aria-label="画质">
+      <svg viewBox="0 0 24 24"><path d="M12 2 15 9l7 .6-5.3 4.6L18.2 21 12 17.3 5.8 21l1.5-6.8L2 9.6 9 9z"/></svg>
+    </button>
+    <button class="dock__btn" id="btnShot" title="截图 (P)" aria-label="截图">
+      <svg viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3v13H4z"/><circle cx="12" cy="13" r="4"/></svg>
+    </button>
+    <button class="dock__btn" id="btnFull" title="全屏 (Enter)" aria-label="全屏">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </div>
+
+  <!-- About modal -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal__panel">
+      <button class="modal__close" id="modalClose" aria-label="关闭">✕</button>
+      <h2>关于本展示</h2>
+      <p>这是一个 <b>3D Gaussian Splatting（高斯泼溅）</b> 场景的可环绕实时展示页，基于 <code>three.js</code> 与 <code>@mkkellogg/gaussian-splats-3d</code> 构建，全部资源本地化、可离线发布。</p>
+      <ul>
+        <li><b>628,040</b> 个高斯基元，含 3 阶球谐视角相关色彩</li>
+        <li>GPU 加速排序 · 抗锯齿 · 渐显加载</li>
+        <li>轨道环绕 · 惯性阻尼 · 自动旋转 · 一键截图</li>
+      </ul>
+      <div class="modal__keys">
+        <span><kbd>R</kbd> 自动旋转</span>
+        <span><kbd>F</kbd> 翻转</span>
+        <span><kbd>Space</kbd> 重置</span>
+        <span><kbd>B</kbd> 背景</span>
+        <span><kbd>P</kbd> 截图</span>
+        <span><kbd>Enter</kbd> 全屏</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

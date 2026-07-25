@@ -1,0 +1,9 @@
+{
+  // Cloudflare Workers static-assets deployment.
+  // The whole repo (except this file and the .git folder) is served as-is.
+  "name": "splat-viewer",
+  "compatibility_date": "2024-11-01",
+  "assets": {
+    "directory": "./"
+  }
+}
